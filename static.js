@@ -769,7 +769,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
         canvas.style.background = style
         window.setInterval(function () {
             main()
-        }, 1)
+        }, 33)
         document.addEventListener('keydown', (event) => {
             keysPressed[event.key] = true;
         });
@@ -800,7 +800,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
             TIP_engine.y = YS_engine
             TIP_engine.body = TIP_engine
             fire++
-            if (fire % 10 == 0) {
+            if (fire % 5 == 0) {
                 player.reflex(TIP_engine)
             }
         }
@@ -922,99 +922,216 @@ window.addEventListener('DOMContentLoaded', (event) => {
         constructor() {
             this.body = circs[0]
             this.redrate = 10
+            this.greenrate = 10
             this.bluerate = 10
             this.shots = []
             this.printout = 0
 
         }
         repair(box, size) {
-            let rad = box * 14
-            rad = rad * rad
-            let clean = (size * size)
-            return (rad / clean)
+
+            let areasmall = ((Math.PI)*(box*box))*.10
+            let areabig = (Math.PI)*(size*size)
+
+            let sumcut = areasmall+areabig 
+
+            let sumcutrat = Math.sqrt(sumcut/Math.PI)
+            sumcutrat-=size
+
+            // let rad = box * 10
+            // rad = rad * rad
+            // let clean = (size * size)
+            // console.log(sumcutrat)
+            return sumcutrat
 
 
         }
+        clean() {
+
+            for (let t = 0; t < this.shots.length; t++) {
+                if (this.shots[t].radius <= 1) {
+                    this.shots.splice(t, 1)
+                }
+            }
+
+        }
         draw() {
+            this.clean()
 
             this.redrate = this.body.radius / 5
             this.bluerate = this.body.radius / 5
+            this.greenrate = this.body.radius / 5
             if (this.body.radius > 0) {
                 this.body.move()
                 this.body.draw()
             }
+
             for (let t = 0; t < this.shots.length; t++) {
                 if (this.shots[t].radius > 0) {
                     this.shots[t].move()
                     this.shots[t].draw()
                     if (this.body.radius >= this.shots[t].radius) {
                         if (this.body.doesPerimeterTouch(this.shots[t])) {
-                            let dropper = this.shots[t].radius * .1
+                            let dropper = this.shots[t].radius * 1
                             if (dropper < .2) {
                                 dropper = this.shots[t].radius
                             }
-                            this.shots[t].radius -= (dropper)
+                            this.shots[t].radius -= (dropper*.1)
                             this.body.radius += this.repair((dropper), this.body.radius)
-                            this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom * (.25 * dropper))) / (this.body.radius + (.25 * dropper))
-                            this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom * (.25 * dropper))) / (this.body.radius + (.25 * dropper))
+                            this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
+                            this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
+                        }
+                        if (this.body.doesPerimeterTouch(this.shots[t])) {
+                            let dropper = this.shots[t].radius * 1
+                            if (dropper < .2) {
+                                dropper = this.shots[t].radius
+                            }
+                            this.shots[t].radius -= (dropper*.1)
+                            this.body.radius += this.repair((dropper), this.body.radius)
+                            this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
+                            this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
                         }
                     } else {
                         if (this.body.radius > 0) {
                             if (this.body.doesPerimeterTouch(this.shots[t])) {
-                                let dropper = this.body.radius * .1
-                                if (dropper < .2) {
+                                let dropper = this.body.radius * 1
+                                if (this.body.radius < .2) {
                                     dropper = this.body.radius
+                                    this.body.radius = 0
                                 }
-                                this.body.radius -= dropper
+                                this.body.radius -= (dropper*.1)
                                 this.shots[t].radius += this.repair(dropper, this.shots[t].radius)
-                                this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom * dropper)) / (this.body.radius + dropper)
-                                this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom * dropper)) / (this.body.radius + dropper)
+                                this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom *  (.025 * dropper))) / (this.body.radius +  (.025 * dropper))
+                                this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom *  (.025 * dropper))) / (this.body.radius +  (.025 * dropper))
                             }
                         } else {
                             this.printout = 1
                         }
                     }
                 }
-                for (let k = 0; k < this.shots.length; k++) {
 
-                    if (t != k) {
-                        if (this.shots[k].radius > 0) {
-                            if (this.shots[t].radius > 0) {
-                                if (this.shots[t].doesPerimeterTouch(this.shots[k])) {
-                                    if (this.shots[t].radius >= this.shots[k].radius) {
-                                        let dropper = this.shots[k].radius * .1
-                                        if (dropper < .1) {
-                                            dropper = this.shots[k].radius
+                    for (let k = 0; k < this.shots.length; k++) {
+
+                        if (t != k) {
+                            if (this.shots[k].radius > 0) {
+                                if (this.shots[t].radius > 0) {
+                                    if (this.shots[t].doesPerimeterTouch(this.shots[k])) {
+                                        if (this.shots[t].radius >= this.shots[k].radius) {
+                                            let dropper = this.shots[k].radius * 1
+                                            if (dropper < .1) {
+                                                dropper = this.shots[k].radius
+                                            }
+                                            this.shots[t].radius += this.repair(dropper, this.shots[t].radius)
+                                            this.shots[k].radius -= (dropper*.1)
+                                            this.shots[t].xmom = ((this.shots[t].xmom * this.shots[t].radius) + (this.shots[k].xmom *  (.025 * dropper))) / (this.shots[t].radius +  (.025 * dropper))
+                                            this.shots[t].ymom = ((this.shots[t].ymom * this.shots[t].radius) + (this.shots[k].ymom *  (.025 * dropper))) / (this.shots[t].radius +  (.025 * dropper))
+                                        } else {
+                                            let dropper = this.shots[t].radius * 1
+                                            if (dropper < .1) {
+                                                dropper = this.shots[t].radius
+                                            }
+                                            this.shots[t].radius -= (dropper*.1)
+                                            this.shots[k].radius += this.repair(dropper, this.shots[k].radius)
+                                            this.shots[k].xmom = ((this.shots[k].xmom * this.shots[k].radius) + (this.shots[t].xmom *  (.025 * dropper))) / (this.shots[k].radius +  (.025 * dropper))
+                                            this.shots[k].ymom = ((this.shots[k].ymom * this.shots[k].radius) + (this.shots[t].ymom *  (.025 * dropper))) / (this.shots[k].radius +  (.025 * dropper))
                                         }
-                                        this.shots[t].radius += this.repair(dropper, this.shots[t].radius)
-                                        this.shots[k].radius -= dropper
-                                        this.shots[t].xmom = ((this.shots[t].xmom * this.shots[t].radius) + (this.shots[k].xmom * dropper)) / (this.shots[t].radius + dropper)
-                                        this.shots[t].ymom = ((this.shots[t].ymom * this.shots[t].radius) + (this.shots[k].ymom * dropper)) / (this.shots[t].radius + dropper)
-                                    } else {
-                                        let dropper = this.shots[t].radius * .1
-                                        if (dropper < .1) {
-                                            dropper = this.shots[t].radius
-                                        }
-                                        this.shots[t].radius -= dropper
-                                        this.shots[k].radius += this.repair(dropper, this.shots[k].radius)
-                                        this.shots[k].xmom = ((this.shots[k].xmom * this.shots[k].radius) + (this.shots[t].xmom * dropper)) / (this.shots[k].radius + dropper)
-                                        this.shots[k].ymom = ((this.shots[k].ymom * this.shots[k].radius) + (this.shots[t].ymom * dropper)) / (this.shots[k].radius + dropper)
                                     }
                                 }
                             }
                         }
                     }
+            
+                    if (this.shots[t].radius > 0) {
+                        if (this.body.radius >= this.shots[t].radius) {
+                            if (this.body.doesPerimeterTouch(this.shots[t])) {
+                                let dropper = this.shots[t].radius * 1
+                                if (dropper < .2) {
+                                    dropper = this.shots[t].radius
+                                }
+                                this.shots[t].radius -= (dropper*.1)
+                                this.body.radius += this.repair((dropper), this.body.radius)
+                                this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
+                                this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
+                            }
+                            if (this.body.doesPerimeterTouch(this.shots[t])) {
+                                let dropper = this.shots[t].radius * 1
+                                if (dropper < .2) {
+                                    dropper = this.shots[t].radius
+                                }
+                                this.shots[t].radius -= (dropper*.1)
+                                this.body.radius += this.repair((dropper), this.body.radius)
+                                this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
+                                this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom * (.025 * dropper))) / (this.body.radius + (.025 * dropper))
+                            }
+                        } else {
+                            if (this.body.radius > 0) {
+                                if (this.body.doesPerimeterTouch(this.shots[t])) {
+                                    let dropper = this.body.radius * 1
+                                    if (dropper < .2) {
+                                        dropper = this.body.radius
+                                        this.body.radius = 0
+                                    }
+                                    this.body.radius -= (dropper*.1)
+                                    this.shots[t].radius += this.repair(dropper, this.shots[t].radius)
+                                    this.body.xmom = ((this.body.xmom * this.body.radius) + (this.shots[t].xmom *  (.025 * dropper))) / (this.body.radius +  (.025 * dropper))
+                                    this.body.ymom = ((this.body.ymom * this.body.radius) + (this.shots[t].ymom *  (.025 * dropper))) / (this.body.radius +  (.025 * dropper))
+                                }
+                            } else {
+                                this.printout = 1
+                            }
+                        }
+                    }
+
+                        for (let k = 0; k < this.shots.length; k++) {
+
+                            if (t != k) {
+                                if (this.shots[k].radius > 0) {
+                                    if (this.shots[t].radius > 0) {
+                                        if (this.shots[t].doesPerimeterTouch(this.shots[k])) {
+                                            if (this.shots[t].radius >= this.shots[k].radius) {
+                                                let dropper = this.shots[k].radius * 1
+                                                if (dropper < .1) {
+                                                    dropper = this.shots[k].radius
+                                                }
+                                                this.shots[t].radius += this.repair(dropper, this.shots[t].radius)
+                                                this.shots[k].radius -= (dropper*.1)
+                                                this.shots[t].xmom = ((this.shots[t].xmom * this.shots[t].radius) + (this.shots[k].xmom *  (.025 * dropper))) / (this.shots[t].radius +  (.025 * dropper))
+                                                this.shots[t].ymom = ((this.shots[t].ymom * this.shots[t].radius) + (this.shots[k].ymom *  (.025 * dropper))) / (this.shots[t].radius +  (.025 * dropper))
+                                            } else {
+                                                let dropper = this.shots[t].radius * 1
+                                                if (dropper < .1) {
+                                                    dropper = this.shots[t].radius
+                                                }
+                                                this.shots[t].radius -= (dropper*.1)
+                                                this.shots[k].radius += this.repair(dropper, this.shots[k].radius)
+                                                this.shots[k].xmom = ((this.shots[k].xmom * this.shots[k].radius) + (this.shots[t].xmom *  (.025 * dropper))) / (this.shots[k].radius +  (.025 * dropper))
+                                                this.shots[k].ymom = ((this.shots[k].ymom * this.shots[k].radius) + (this.shots[t].ymom *  (.025 * dropper))) / (this.shots[k].radius +  (.025 * dropper))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                
                 }
-            }
+            
 
             if (this.printout == 1) {
                 canvas_context.font = "30px arial"
                 canvas_context.fillText("Absorbed!", 320, 330)
             }
+
+            // this.clean()
         }
         reflex(tip) {
-            this.shotradius = 5
-            this.body.radius -= this.repair(this.shotradius, this.body.radius)
+            this.shotradius = this.body.radius
+            if (this.body.radius > this.repair(this.shotradius, this.body.radius)) {
+                this.body.radius -= this.repair(this.shotradius, this.body.radius)*.2
+            }
+            this.shotradius*=.1
+            // if(this.body.radius < 1){
+            //     this.body.radius = 1
+            // }
             let link = new LineOP(this.body, tip)
             this.body.xmom -= ((tip.x - this.body.x) / (link.hypotenuse() / 10)) * (this.shotradius / this.body.radius)
             this.body.ymom -= ((tip.y - this.body.y) / (link.hypotenuse() / 10)) * (this.shotradius / this.body.radius)
@@ -1023,10 +1140,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
             this.firingangle = Math.atan2(this.body.y - tip.y, this.body.x - tip.x)
             this.firingangle += Math.PI
-            this.cos = (Math.cos(this.firingangle) * (this.body.radius + (this.shotradius * 2)))
-            this.sin = (Math.sin(this.firingangle) * (this.body.radius + (this.shotradius * 2)))
+            this.cos = (Math.cos(this.firingangle) * (this.body.radius + (this.shotradius)))
+            this.sin = (Math.sin(this.firingangle) * (this.body.radius + (this.shotradius)))
 
-            let circ = new Circle(this.body.x + this.cos, this.body.y + this.sin, this.shotradius, "white", (((tip.x - this.body.x) / (link.hypotenuse() / 5))), (((tip.y - this.body.y) / (link.hypotenuse() / 5))), 1, 1)
+            let circ = new Circle(this.body.x + this.cos, this.body.y + this.sin, this.shotradius, "white", (((tip.x - this.body.x) / (link.hypotenuse() / 10))), (((tip.y - this.body.y) / (link.hypotenuse() / 10))), 1, 1)
             this.shots.push(circ)
 
         }
@@ -1037,11 +1154,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
     let player = new Player()
 
     let fire = 0
+    let splat = 0
 
     let shots = []
 
     for (let t = 0; t < 3000; t++) {
-        let circ = new Circle(Math.random() * 700, Math.random() * 700, 3 + Math.random() * 20, "white", 0, 0, 1, 1)
+        let circ = new Circle(Math.random() * 720, Math.random() * 720, 2 + Math.random() * 21, "white", 0, 0, 1, 1)
         let wet = 0
         for (let k = 0; k < shots.length; k++) {
             let link = new LineOP(circ, shots[k])
@@ -1100,15 +1218,25 @@ window.addEventListener('DOMContentLoaded', (event) => {
         player.draw()
         const imageData = canvas_context.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
+        splat++
         for (var i = 0; i < data.length; i += 4) {
 
             let point = new Point(Math.floor((i / 4) % 720), Math.floor(Math.floor(i / 4) / 720))
             for (let g = 0; circs.length > g; g++) {
-                data[i] = (new LineOP(circs[g], point)).hypotenuse() * player.redrate  // red
-                data[i + 1] = 255 - (new LineOP(circs[g], point)).hypotenuse() // green
-                data[i + 2] = (new LineOP(circs[g], point)).hypotenuse() / player.bluerate // blue
+                data[i] = (new LineOP(circs[g], point)).hypotenuse() * (player.redrate + Math.abs(player.redrate * (Math.cos(splat / 71))))  // red
+                data[i + 1] = 255 - (new LineOP(circs[g], point)).hypotenuse()   // green
+                data[i + 2] = (new LineOP(circs[g], point)).hypotenuse() / (player.bluerate - Math.abs(player.bluerate * (Math.cos(splat / 142))))// blue
             }
 
+
+            // if(splat%100 <= 50){
+
+            //     data[i] = 255-data[i]
+            //     data[i + 1] = 255-data[i+1]
+            //     data[i + 2] = 255-data[i+2]
+    
+    
+            // }
         }
         canvas_context.putImageData(imageData, 0, 0);
     }
